@@ -1,4 +1,4 @@
-package org.example.profilemanagerspringboot;
+package ph.edu.dlsu.lbycpob;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
