@@ -120,3 +120,54 @@ public String updatePictureFromUpload(UUID id, MultipartFile file) {
     if (contentType == null || !contentType.startsWith("image/")) {
         throw new IllegalArgumentException("The selected file is not an image.");
     }
+    Profile profile = getProfile(id);
+
+    byte[] original;
+    try {
+        original = file.getBytes();
+    } catch (Exception e) {
+        throw new IllegalStateException("Could not read the uploaded file.");
+    }
+
+    byte[] webp = imageCompressionService.compressToWebp(original);
+    String path = "avatars/" + id + ".webp";
+    String publicUrl = supabaseStorageService.uploadAndGetPublicUrl(path, webp, "image/webp");
+
+    profile.setPicture(publicUrl);
+    return publicUrl;
+}
+
+/**
+ * Adds a bidirectional friendship. Checks EACH direction independently
+ * rather than assuming they're always in sync -- if the two rows ever
+ * became asymmetric (e.g. leftover data from before this method was
+ * transactional, or any other partial write), a naive "check forward,
+ * then blindly insert both" approach hits the unique constraint on the
+ * direction that already exists and rolls back the whole transaction,
+ * including the direction that legitimately needed to be inserted.
+ */
+@Transactional
+public String addFriend(UUID profileId, String friendName) {
+    Profile self = getProfile(profileId);
+    Profile friend = findByNameOrThrow(friendName);
+
+    if (friend.getId().equals(self.getId())) {
+        throw new IllegalArgumentException("A profile cannot be friends with itself.");
+    }
+
+    boolean forwardExists = friendRepository.existsByProfileIdAndFriendId(self.getId(), friend.getId());
+    boolean reverseExists = friendRepository.existsByProfileIdAndFriendId(friend.getId(), self.getId());
+
+    if (forwardExists && reverseExists) {
+        throw new IllegalStateException("\"" + friend.getName() + "\" is already a friend.");
+    }
+
+    if (!forwardExists) {
+        friendRepository.save(Friend.builder().profileId(self.getId()).friendId(friend.getId()).build());
+    }
+    if (!reverseExists) {
+        friendRepository.save(Friend.builder().profileId(friend.getId()).friendId(self.getId()).build());
+    }
+    return friend.getName();
+}
+
