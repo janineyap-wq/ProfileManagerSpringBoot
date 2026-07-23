@@ -71,4 +71,21 @@ public class ImageCompressionService {
         }
         return resized;
     }
+    private byte[] encodeToWebp(BufferedImage image) throws IOException {
+        ImageWriter writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
+        WebPWriteParam writeParam = new WebPWriteParam(writer.getLocale());
+        writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        writeParam.setCompressionType(writeParam.getCompressionTypes()[WebPWriteParam.LOSSY_COMPRESSION]);
+        writeParam.setCompressionQuality(WEBP_QUALITY);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (MemoryCacheImageOutputStream output = new MemoryCacheImageOutputStream(baos)) {
+            writer.setOutput(output);
+            writer.write(null, new IIOImage(image, null, null), writeParam);
+        } finally {
+            writer.dispose();
+        }
+        return baos.toByteArray();
+    }
+}
 
