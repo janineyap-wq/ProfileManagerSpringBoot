@@ -88,3 +88,56 @@ public class Profile {
         return quote;
     }
 
+    public void setQuote(String quote) {
+        this.quote = quote;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Profile profile)) return false;
+        return Objects.equals(id, profile.id)
+                && Objects.equals(name, profile.name)
+                && Objects.equals(status, profile.status)
+                && Objects.equals(quote, profile.quote)
+                && Objects.equals(picture, profile.picture)
+                && Objects.equals(createdAt, profile.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, status, quote, picture, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", status='" + status + '\'' +
+                ", quote='" + quote + '\'' +
+                ", picture='" + picture + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
