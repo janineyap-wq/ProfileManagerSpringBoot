@@ -1,4 +1,4 @@
-package ph.edu.dlsu.lbycpob;
+package ph.edu.dlsu.lbycpob.profilemanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
