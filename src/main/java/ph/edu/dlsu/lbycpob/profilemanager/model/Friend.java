@@ -69,3 +69,61 @@ public class Friend {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Friend friend)) return false;
+        return Objects.equals(id, friend.id)
+                && Objects.equals(profileId, friend.profileId)
+                && Objects.equals(friendId, friend.friendId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, profileId, friendId);
+    }
+
+    @Override
+    public String toString() {
+        return "Friend{" +
+                "id=" + id +
+                ", profileId=" + profileId +
+                ", friendId=" + friendId +
+                '}';
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Manual replacement for Lombok's @Builder.
+     */
+    public static final class Builder {
+        private UUID id;
+        private UUID profileId;
+        private UUID friendId;
+
+        private Builder() {
+        }
+
+        public Builder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder profileId(UUID profileId) {
+            this.profileId = profileId;
+            return this;
+        }
+
+        public Builder friendId(UUID friendId) {
+            this.friendId = friendId;
+            return this;
+        }
+
+        public Friend build() {
+            return new Friend(id, profileId, friendId);
+        }
+    }
+}
