@@ -160,5 +160,5 @@ private Profile findByNameOrThrow(String friendName) {
             .orElseThrow(() -> new NoSuchElementException(
                     "No profile named \"" + trimmed + "\" exists. Add that profile first."));
 }
-}
+
 
