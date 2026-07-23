@@ -46,3 +46,47 @@ public class SupabaseStorageService {
         this.secretKey = secretKey;
         this.bucket = bucket;
     }
+    /**
+     * Uploads (or overwrites, via x-upsert) the given bytes at {@code path}
+     * within the configured bucket, and returns the public URL. The bucket
+     * must already exist and be set to Public in the Supabase dashboard --
+     * this method doesn't create buckets or manage their visibility.
+     */
+    public String uploadAndGetPublicUrl(String path, byte[] content, String contentType) {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                    "SUPABASE_SECRET_KEY is not configured -- avatar upload is unavailable. " +
+                            "Set it to your Supabase Secret API key (sb_secret_...) from " +
+                            "Project Settings -> API Keys -> Publishable and secret API keys, " +
+                            "or use the 'paste an image URL' field instead.");
+        }
+
+        URI uploadUri = URI.create(supabaseUrl + "/storage/v1/object/" + bucket + "/" + path);
+
+        HttpRequest request = HttpRequest.newBuilder(uploadUri)
+                .header("apikey", secretKey)
+                .header("Authorization", "Bearer " + secretKey)
+                .header("Content-Type", contentType)
+                .header("x-upsert", "true") // overwrite any existing file at this path
+                .POST(BodyPublishers.ofByteArray(content))
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not reach Supabase Storage: " + e.getMessage(), e);
+        }
+
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException(
+                    "Supabase Storage upload failed (HTTP " + response.statusCode() + "): " + response.body());
+        }
+
+        return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + path;
+    }
+
+    private static String trimTrailingSlash(String url) {
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
+}
